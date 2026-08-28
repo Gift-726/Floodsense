@@ -36,7 +36,10 @@ export function SensorPanel() {
   const onlineCount = nodes?.filter((n) => n.status === "online").length ?? 0;
 
   return (
-    <section className="flex min-h-0 flex-1 flex-col rounded border border-slate-800 bg-slate-950 p-3">
+    <section
+      id="sensor-status"
+      className="flex min-h-0 flex-1 flex-col rounded border border-slate-800 bg-slate-950 p-3 transition-shadow"
+    >
       <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
         Sensor Status ({onlineCount}/{nodes?.length ?? 35} nodes)
       </h2>

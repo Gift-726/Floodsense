@@ -16,7 +16,7 @@ export default function DashboardPage() {
         <Sidebar />
         <div className="flex min-h-0 flex-1 flex-col">
           <div className="flex min-h-0 flex-1">
-            <main className="relative min-h-0 flex-1">
+            <main id="dashboard-map" className="relative min-h-0 flex-1">
               <MapView />
               <LagdoBanner />
               <div className="pointer-events-none absolute left-3 top-3 z-10 rounded bg-slate-950/80 px-2.5 py-1 text-xs text-slate-300 backdrop-blur">
