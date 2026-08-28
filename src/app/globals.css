@@ -5,6 +5,21 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* Status palette — fixed, never themed. Reserved for state; never reused for series identity. */
+  --status-good: #0ca30c;
+  --status-warning: #fab219;
+  --status-serious: #ec835a;
+  --status-critical: #d03b3b;
+  --status-critical-wash: rgba(208, 59, 59, 0.15);
+  --status-critical-ring: rgba(208, 59, 59, 0.4);
+  --status-critical-solid: rgba(208, 59, 59, 0.92);
+
+  /* Single-series chart accent (categorical slot 1, dark step) */
+  --chart-line: #3987e5;
+  --chart-fill: rgba(57, 135, 229, 0.1);
+  --chart-grid: #2c2c2a;
+  --chart-axis: #898781;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -17,7 +32,7 @@
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
 
 @layer utilities {
