@@ -10,12 +10,12 @@ The notebook extracts, spatial-clips, and merges daily precipitation, soil moist
 
 | Part | Catchment | Data Sources | Purpose / Description |
 | --- | --- | --- | --- |
-| **Part 1** | Kogi State | CHIRPS | Primary daily rainfall for local LSTM features.|
-| **Part 2** | Niger–Benue Basin / Kogi | NASA GPM IMERG | High-resolution satellite rainfall for validation/backfilling.|
-| **Part 3** | Kogi State | NASA SMAP (SPL3SMP) | Daily volumetric surface soil moisture.|
-| **Part 4** | Lagdo Dam Catchment | CHIRPS, IMERG, SMAP | Upstream hydrologic features to generate `lagdo_risk_flag` proxies. |
-| **Part 5** | Lokoja | Open-Meteo Flood API | Target river discharge rates ($m^3/s$). |
-| **Part 6** | Global / Output | Integrated Merge | Final dataset consolidation and gap backfilling. |
+| **Part_1** | Kogi State | CHIRPS | Primary daily rainfall for local LSTM features.|
+| **Part_2** | Niger–Benue Basin / Kogi | NASA GPM IMERG | High-resolution satellite rainfall for validation/backfilling.|
+| **Part_3** | Kogi State | NASA SMAP (SPL3SMP) | Daily volumetric surface soil moisture.|
+| **Part_4** | Lagdo Dam Catchment | CHIRPS, IMERG, SMAP | Upstream hydrologic features to generate `lagdo_risk_flag` proxies. |
+| **Part_5** | Lokoja | Open-Meteo Flood API | Target river discharge rates ($m^3/s$). |
+| **Part_6** | Global / Output | Integrated Merge | Final dataset consolidation and gap backfilling. |
 
 ---
 
