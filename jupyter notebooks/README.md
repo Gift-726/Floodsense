@@ -10,24 +10,12 @@ The notebook extracts, spatial-clips, and merges daily precipitation, soil moist
 
 | Part | Catchment | Data Sources | Purpose / Description |
 | --- | --- | --- | --- |
-| **Part 1** | Kogi State | CHIRPS | Primary daily rainfall for local LSTM features.
-
- |
-| **Part 2** | Niger–Benue Basin / Kogi | NASA GPM IMERG | High-resolution satellite rainfall for validation/backfilling.
-
- |
-| **Part 3** | Kogi State | NASA SMAP (SPL3SMP) | Daily volumetric surface soil moisture.
-
- |
-| **Part 4** | Lagdo Dam Catchment | CHIRPS, IMERG, SMAP | Upstream hydrologic features to generate `lagdo_risk_flag` proxies.
-
- |
-| **Part 5** | Lokoja | Open-Meteo Flood API | Target river discharge rates ($m^3/s$).
-
- |
-| **Part 6** | Global / Output | Integrated Merge | Final dataset consolidation and gap backfilling.
-
- |
+| **Part 1** | Kogi State | CHIRPS | Primary daily rainfall for local LSTM features.|
+| **Part 2** | Niger–Benue Basin / Kogi | NASA GPM IMERG | High-resolution satellite rainfall for validation/backfilling.|
+| **Part 3** | Kogi State | NASA SMAP (SPL3SMP) | Daily volumetric surface soil moisture.|
+| **Part 4** | Lagdo Dam Catchment | CHIRPS, IMERG, SMAP | Upstream hydrologic features to generate `lagdo_risk_flag` proxies. |
+| **Part 5** | Lokoja | Open-Meteo Flood API | Target river discharge rates ($m^3/s$). |
+| **Part 6** | Global / Output | Integrated Merge | Final dataset consolidation and gap backfilling. |
 
 ---
 
@@ -37,42 +25,18 @@ The final output file is **`IEEE flood prediction data.csv`**. It includes the f
 
 | Column Name | Type | Source | Description |
 | --- | --- | --- | --- |
-| `date` | `datetime` | System | Daily timestamp (2010-01-01 to 2023-12-31).
-
- |
-| `rainfall_mm_chirps_kogi` | `float` | CHIRPS | Daily mean precipitation over Kogi State bounding box.
-
- |
-| `rainfall_mm_imerg_kogi` | `float` | GPM IMERG | Daily mean precipitation over Kogi State (used for backfilling).
-
- |
-| `soil_moisture_kogi` | `float` | NASA SMAP | Mean surface soil moisture over Kogi State.
-
- |
-| `has_soil_moisture_kogi` | `bool` | Pipeline Flag | `True` if SMAP data was available; `False` if mean-imputed.
-
- |
-| `rainfall_source_chirps_kogi` | `bool` | Pipeline Flag | `True` if CHIRPS was used; `False` if backfilled by IMERG.
-
- |
-| `river_discharge` | `float` | Open-Meteo API | Daily discharge rate at Lokoja (Lat: 7.80, Lon: 6.74).
-
- |
-| `rainfall_mm_chirps_lagdo` | `float` | CHIRPS | Daily precipitation over upstream Lagdo Dam catchment.
-
- |
-| `rainfall_mm_imerg_lagdo` | `float` | GPM IMERG | Upstream IMERG daily rainfall.
-
- |
-| `soil_moisture_lagdo` | `float` | NASA SMAP | Upstream soil moisture over Lagdo Dam catchment.
-
- |
-| `has_soil_moisture_lagdo` | `bool` | Pipeline Flag | `True` if upstream SMAP data was available.
-
- |
-| `rainfall_source_chirps_lagdo` | `bool` | Pipeline Flag | `True` if upstream CHIRPS was used; `False` if backfilled.
-
- |
+| `date` | `datetime` | System | Daily timestamp (2010-01-01 to 2023-12-31). |
+| `rainfall_mm_chirps_kogi` | `float` | CHIRPS | Daily mean precipitation over Kogi State bounding box. |
+| `rainfall_mm_imerg_kogi` | `float` | GPM IMERG | Daily mean precipitation over Kogi State (used for backfilling). |
+| `soil_moisture_kogi` | `float` | NASA SMAP | Mean surface soil moisture over Kogi State. |
+| `has_soil_moisture_kogi` | `bool` | Pipeline Flag | `True` if SMAP data was available; `False` if mean-imputed. |
+| `rainfall_source_chirps_kogi` | `bool` | Pipeline Flag | `True` if CHIRPS was used; `False` if backfilled by IMERG. |
+| `river_discharge` | `float` | Open-Meteo API | Daily discharge rate at Lokoja (Lat: 7.80, Lon: 6.74). |
+| `rainfall_mm_chirps_lagdo` | `float` | CHIRPS | Daily precipitation over upstream Lagdo Dam catchment. |
+| `rainfall_mm_imerg_lagdo` | `float` | GPM IMERG | Upstream IMERG daily rainfall. |
+| `soil_moisture_lagdo` | `float` | NASA SMAP | Upstream soil moisture over Lagdo Dam catchment. |
+| `has_soil_moisture_lagdo` | `bool` | Pipeline Flag | `True` if upstream SMAP data was available. |
+| `rainfall_source_chirps_lagdo` | `bool` | Pipeline Flag | `True` if upstream CHIRPS was used; `False` if backfilled. |
 
 ---
 
@@ -107,29 +71,3 @@ The processing pipeline utilizes geographic bounding boxes `(min_lon, min_lat, m
 * **Niger–Benue Basin Box**: `(4.5, 6.0, 9.5, 10.5)`
 
 * **Lagdo Dam Catchment Box**: `(11.0, 6.5, 14.5, 10.5)` (Covers Adamawa/Taraba, NG & N. Cameroon)
-
-
-
----
-
-## Execution Guide
-
-To build the dataset from scratch:
-
-1. **Notebook Preparation**: Open the notebook in Google Colab or a local Jupyter environment.
-
-
-2. **Execute In Sequence**:
-* **Part 1**: Downloads gzipped GeoTIFFs from CHIRPS Africa daily archives, clips them to Kogi's bounding box, and computes daily averages.
-
-
-* **Parts 2 & 3**: Prompts for NASA Earthdata authentication via `earthaccess.login()` to query and extract GPM IMERG and SMAP SPL3SMP granules.
-
-
-* **Part 4**: Re-runs the extraction workflows targeting the Lagdo Dam catchment bounding box.
-
-
-* **Part 5**: Fetches daily river discharge rates for Lokoja via the Open-Meteo Flood API and merges them with Kogi observations.
-
-
-* **Part 6**: Consolidates Lagdo data, backfills missing CHIRPS entries using IMERG values, imputes missing pre-2015 SMAP values with dataset means, generates boolean tracking flags, and exports `IEEE flood prediction data.csv`.
