@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { StatTile } from "@/components/StatTile";
 import type { AlertsResponse, ForecastResponse, SensorsResponse } from "@/lib/types";
+import type { Scenario } from "@/lib/scenario";
 
 type Stats = {
   activeAlerts: number;
@@ -20,7 +21,7 @@ function peakAccent(probability: number): "good" | "warning" | "serious" | "crit
   return "good";
 }
 
-export function OverviewStats() {
+export function OverviewStats({ scenario }: { scenario: Scenario }) {
   const [stats, setStats] = useState<Stats | null>(null);
 
   useEffect(() => {
@@ -28,9 +29,9 @@ export function OverviewStats() {
 
     async function load() {
       const [forecast, sensors, alerts] = await Promise.all([
-        fetch("/api/forecast").then((r) => r.json() as Promise<ForecastResponse>),
-        fetch("/api/sensors").then((r) => r.json() as Promise<SensorsResponse>),
-        fetch("/api/alerts").then((r) => r.json() as Promise<AlertsResponse>),
+        fetch(`/api/forecast?scenario=${scenario}`).then((r) => r.json() as Promise<ForecastResponse>),
+        fetch(`/api/sensors?scenario=${scenario}`).then((r) => r.json() as Promise<SensorsResponse>),
+        fetch(`/api/alerts?scenario=${scenario}`).then((r) => r.json() as Promise<AlertsResponse>),
       ]);
       if (cancelled) return;
 
@@ -47,10 +48,12 @@ export function OverviewStats() {
     }
 
     load();
+    const interval = window.setInterval(load, 5000);
     return () => {
       cancelled = true;
+      window.clearInterval(interval);
     };
-  }, []);
+  }, [scenario]);
 
   return (
     <div className="grid grid-cols-2 gap-3 border-b border-slate-800 bg-slate-900 p-3 sm:grid-cols-4">

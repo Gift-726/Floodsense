@@ -31,16 +31,13 @@ export function Sidebar() {
             {label}
           </button>
         ))}
-        <span
-          className="flex cursor-not-allowed items-center gap-2.5 rounded border-l-2 border-transparent px-3 py-2 text-sm text-slate-600"
-          title="The USSD community simulator ships in Week 3"
+        <a
+          href="/community"
+          className="flex items-center gap-2.5 rounded border-l-2 border-transparent px-3 py-2 text-sm text-slate-400 transition-colors hover:border-blue-500 hover:bg-slate-900 hover:text-slate-100"
         >
           <IconCommunity className="h-4 w-4 shrink-0" />
           Community
-          <span className="ml-auto rounded bg-slate-800 px-1.5 py-0.5 text-[10px] text-slate-500">
-            Wk 3
-          </span>
-        </span>
+        </a>
       </nav>
       <p className="px-3 text-[11px] leading-snug text-slate-600">
         Kogi State &middot; v0.1.0-skeleton

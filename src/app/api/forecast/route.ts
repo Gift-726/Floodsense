@@ -1,12 +1,16 @@
 import { NextResponse } from "next/server";
+import { isScenario, SCENARIO_INTENSITY, type Scenario } from "@/lib/scenario";
 
 // Stub implementation — Week 1 skeleton only.
 // Data Scientist replaces this with real LSTM output per API_CONTRACT.md.
 
-function buildMockForecast() {
+function buildMockForecast(scenario: Scenario) {
+  const intensity = SCENARIO_INTENSITY[scenario];
+  const peak = 40 + intensity * 55; // t72 tops out ~48%, t0 ~95%
   const hours = Array.from({ length: 72 }, (_, h) => {
-    const probability = Math.min(95, Math.round(10 + h * 0.9));
-    const spread = Math.round(5 + h * 0.15);
+    const progress = h / 71;
+    const probability = Math.round(Math.min(97, 8 + progress * peak));
+    const spread = Math.round(5 + progress * 12);
     return {
       hour: h,
       probability,
@@ -16,13 +20,16 @@ function buildMockForecast() {
   });
 
   return {
-    scenario: "t72",
+    scenario,
     generated_at: new Date().toISOString(),
-    lagdo_risk_flag: false,
+    lagdo_risk_flag: intensity >= 0.5,
     hours,
   };
 }
 
-export async function GET() {
-  return NextResponse.json(buildMockForecast());
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const raw = searchParams.get("scenario");
+  const scenario = isScenario(raw) ? raw : "t72";
+  return NextResponse.json(buildMockForecast(scenario));
 }

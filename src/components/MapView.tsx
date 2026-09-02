@@ -1,31 +1,33 @@
 "use client";
 
-import { useEffect, useRef, useState, type MutableRefObject } from "react";
+import { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { KOGI_CENTER, KOGI_DEFAULT_ZOOM } from "@/lib/kogi";
 import { LGA_RISK, RISK_COLOR, RISK_ORDER, type RiskLevel } from "@/lib/mockRisk";
+import { SENSOR_STATUS_COLOR, COMMUNITY_STATUS_COLOR } from "@/lib/statusColors";
 import type { AlertsResponse, SensorsResponse } from "@/lib/types";
+import type { Scenario } from "@/lib/scenario";
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
-
-const COMMUNITY_STATUS_COLOR: Record<string, string> = {
-  monitoring: "#64748b",
-  warning: "#fab219",
-  alerted: "#d03b3b",
-  evacuating: "#8b5cf6",
-};
 
 function buildRiskFillExpression(): mapboxgl.ExpressionSpecification {
   const stops = Object.entries(LGA_RISK).flatMap(([lga, level]) => [lga, RISK_COLOR[level]]);
   return ["match", ["get", "lga"], ...stops, "#334155"] as mapboxgl.ExpressionSpecification;
 }
 
-export function MapView() {
+type MarkerHandles = {
+  sensors: mapboxgl.Marker[];
+  communities: Map<string, { marker: mapboxgl.Marker; el: HTMLDivElement }>;
+};
+
+export function MapView({ scenario }: { scenario: Scenario }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
-  const markersRef = useRef<mapboxgl.Marker[]>([]);
+  const markersRef = useRef<MarkerHandles>({ sensors: [], communities: new Map() });
+  const seenReportsRef = useRef<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -87,16 +89,44 @@ export function MapView() {
         hoverPopup.remove();
       });
 
-      loadMarkers(map, markersRef);
+      setReady(true);
     });
 
     return () => {
-      markersRef.current.forEach((m) => m.remove());
-      markersRef.current = [];
+      markersRef.current.sensors.forEach((m) => m.remove());
+      markersRef.current.communities.forEach(({ marker }) => marker.remove());
+      markersRef.current = { sensors: [], communities: new Map() };
       map.remove();
       mapRef.current = null;
     };
   }, []);
+
+  // (Re)load sensor + community markers whenever the map is ready or the scenario changes.
+  useEffect(() => {
+    if (!ready || !mapRef.current) return;
+    loadMarkers(mapRef.current, markersRef.current, scenario);
+  }, [ready, scenario]);
+
+  // Poll for new community reports and pulse the matching marker.
+  useEffect(() => {
+    if (!ready) return;
+    const interval = window.setInterval(async () => {
+      const alerts: AlertsResponse = await fetch(`/api/alerts?scenario=${scenario}`).then((r) => r.json());
+      for (const report of alerts.reports) {
+        const key = `${report.community}-${report.time}`;
+        if (seenReportsRef.current.has(key)) continue;
+        seenReportsRef.current.add(key);
+        const handle = markersRef.current.communities.get(report.community);
+        if (handle) {
+          handle.el.classList.remove("marker-pulse");
+          // restart animation
+          void handle.el.offsetWidth;
+          handle.el.classList.add("marker-pulse");
+        }
+      }
+    }, 3000);
+    return () => window.clearInterval(interval);
+  }, [ready, scenario]);
 
   if (error) {
     return (
@@ -129,21 +159,20 @@ export function MapView() {
   );
 }
 
-async function loadMarkers(map: mapboxgl.Map, markersRef: MutableRefObject<mapboxgl.Marker[]>) {
-  const [sensors, alerts] = await Promise.all([
-    fetch("/api/sensors").then((r) => r.json() as Promise<SensorsResponse>),
-    fetch("/api/alerts").then((r) => r.json() as Promise<AlertsResponse>),
-  ]);
+async function loadMarkers(map: mapboxgl.Map, handles: MarkerHandles, scenario: Scenario) {
+  handles.sensors.forEach((m) => m.remove());
+  handles.communities.forEach(({ marker }) => marker.remove());
+  handles.sensors = [];
+  handles.communities.clear();
 
-  const sensorStatusColor: Record<string, string> = {
-    online: "#0ca30c",
-    warning: "#fab219",
-    offline: "#d03b3b",
-  };
+  const [sensors, alerts] = await Promise.all([
+    fetch(`/api/sensors?scenario=${scenario}`).then((r) => r.json() as Promise<SensorsResponse>),
+    fetch(`/api/alerts?scenario=${scenario}`).then((r) => r.json() as Promise<AlertsResponse>),
+  ]);
 
   sensors.nodes.forEach((node) => {
     const el = document.createElement("div");
-    el.style.cssText = `width:9px;height:9px;border-radius:50%;background:${sensorStatusColor[node.status]};border:1.5px solid #0f172a;cursor:pointer;`;
+    el.style.cssText = `width:9px;height:9px;border-radius:50%;background:${SENSOR_STATUS_COLOR[node.status]};border:1.5px solid #0f172a;cursor:pointer;`;
     const popup = new mapboxgl.Popup({ offset: 10 }).setHTML(
       `<div style="font:12px system-ui;color:#0f172a"><strong>${node.name}</strong><br/>${node.river} river &middot; ${node.lga}<br/>${node.reading_m.toFixed(1)}m &middot; ${node.status}</div>`
     );
@@ -151,11 +180,10 @@ async function loadMarkers(map: mapboxgl.Map, markersRef: MutableRefObject<mapbo
       .setLngLat([node.lng, node.lat])
       .setPopup(popup)
       .addTo(map);
-    markersRef.current.push(marker);
+    handles.sensors.push(marker);
   });
 
   alerts.communities.forEach((community) => {
-    // approximate marker position: reuse the sensor anchor nearest this community by name match
     const anchor = sensors.nodes.find((n) => n.name.startsWith(community.name));
     if (!anchor) return;
     const el = document.createElement("div");
@@ -167,6 +195,6 @@ async function loadMarkers(map: mapboxgl.Map, markersRef: MutableRefObject<mapbo
       .setLngLat([anchor.lng, anchor.lat])
       .setPopup(popup)
       .addTo(map);
-    markersRef.current.push(marker);
+    handles.communities.set(community.name, { marker, el });
   });
 }

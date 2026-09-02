@@ -13,6 +13,7 @@ import {
   YAxis,
 } from "recharts";
 import type { ForecastResponse } from "@/lib/types";
+import type { Scenario } from "@/lib/scenario";
 
 type ChartPoint = {
   hour: number;
@@ -20,13 +21,13 @@ type ChartPoint = {
   band: [number, number];
 };
 
-export function ForecastPanel() {
+export function ForecastPanel({ scenario }: { scenario: Scenario }) {
   const [data, setData] = useState<ChartPoint[] | null>(null);
   const [lagdoActive, setLagdoActive] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/forecast")
+    fetch(`/api/forecast?scenario=${scenario}`)
       .then((r) => r.json() as Promise<ForecastResponse>)
       .then((forecast) => {
         if (cancelled) return;
@@ -42,7 +43,7 @@ export function ForecastPanel() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [scenario]);
 
   return (
     <section className="rounded border border-slate-800 bg-slate-950 p-3">

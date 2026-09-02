@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { IconTrendDown, IconTrendFlat, IconTrendUp } from "@/components/icons";
 import type { SensorNode, SensorsResponse, SensorStatus } from "@/lib/types";
+import type { Scenario } from "@/lib/scenario";
 
 const STATUS_ORDER: Record<SensorStatus, number> = { offline: 0, warning: 1, online: 2 };
 
@@ -14,12 +15,12 @@ const STATUS_STYLE: Record<SensorStatus, { dot: string; text: string }> = {
 
 const TREND_ICON = { rising: IconTrendUp, stable: IconTrendFlat, falling: IconTrendDown };
 
-export function SensorPanel() {
+export function SensorPanel({ scenario }: { scenario: Scenario }) {
   const [nodes, setNodes] = useState<SensorNode[] | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/sensors")
+    fetch(`/api/sensors?scenario=${scenario}`)
       .then((r) => r.json() as Promise<SensorsResponse>)
       .then((data) => {
         if (!cancelled) {
@@ -31,7 +32,7 @@ export function SensorPanel() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [scenario]);
 
   const onlineCount = nodes?.filter((n) => n.status === "online").length ?? 0;
 

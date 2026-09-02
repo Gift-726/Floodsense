@@ -1,39 +1,20 @@
 import { NextResponse } from "next/server";
-import { KOGI_PLACES } from "@/lib/kogiPlaces";
-import { LGA_RISK, type RiskLevel } from "@/lib/mockRisk";
+import { getAlertLog, getCommunities, getReports } from "@/lib/alertsStore";
+import { isScenario } from "@/lib/scenario";
 
 // Stub implementation — Week 1 skeleton only.
-// GIS Person's communities.geojson replaces this per API_CONTRACT.md. Alert
-// log / report feed populate once the Alert Dispatch Panel (Week 3) is built.
+// GIS Person's communities.geojson replaces this per API_CONTRACT.md.
+// alert_log / reports are in-memory demo state — see alertsStore.ts.
 
-const STATUS_BY_SEVERITY: Record<RiskLevel, "monitoring" | "warning" | "alerted" | "evacuating"> = {
-  low: "monitoring",
-  medium: "monitoring",
-  high: "warning",
-  critical: "alerted",
-};
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const raw = searchParams.get("scenario");
+  const scenario = isScenario(raw) ? raw : "t72";
 
-function buildMockAlerts() {
-  const communities = KOGI_PLACES.map((place, i) => {
-    const severity = LGA_RISK[place.lga] ?? "low";
-    return {
-      name: place.name,
-      lga: place.lga,
-      severity,
-      est_flood_arrival_hours: 72 - i * 6,
-      population: 5000 + i * 1200,
-      status: STATUS_BY_SEVERITY[severity],
-    };
-  });
-
-  return {
+  return NextResponse.json({
     updated_at: new Date().toISOString(),
-    communities,
-    alert_log: [],
-    reports: [],
-  };
-}
-
-export async function GET() {
-  return NextResponse.json(buildMockAlerts());
+    communities: getCommunities(scenario),
+    alert_log: getAlertLog(),
+    reports: getReports(),
+  });
 }
