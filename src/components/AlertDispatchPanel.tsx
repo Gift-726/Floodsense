@@ -52,7 +52,7 @@ export function AlertDispatchPanel({ scenario }: { scenario: Scenario }) {
   return (
     <section
       id="alert-dispatch"
-      className="flex min-h-0 flex-1 flex-col rounded border border-slate-800 bg-slate-950 p-3 transition-shadow"
+      className="flex h-96 shrink-0 flex-col rounded border border-slate-800 bg-slate-950 p-3 transition-shadow md:h-auto md:min-h-0 md:flex-1"
     >
       <div className="mb-2 flex items-center justify-between">
         <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-400">
@@ -67,14 +67,14 @@ export function AlertDispatchPanel({ scenario }: { scenario: Scenario }) {
           {dispatching ? "Dispatching…" : "Dispatch Alert"}
         </button>
       </div>
-      <div className="flex min-h-0 flex-1 gap-3">
-        <div className="min-w-0 flex-1 overflow-y-auto">
+      <div className="flex min-h-0 flex-1 flex-col gap-3 md:flex-row">
+        <div className="min-w-0 flex-1 overflow-auto">
           {!communities ? (
             <div className="flex h-full items-center justify-center text-xs text-slate-600">
               Loading communities…
             </div>
           ) : (
-            <table className="w-full border-collapse text-xs">
+            <table className="w-full min-w-[520px] border-collapse text-xs">
               <thead className="sticky top-0 bg-slate-950 text-slate-500">
                 <tr className="text-left">
                   <th className="py-1 pr-2 font-medium">Community</th>
@@ -115,7 +115,7 @@ export function AlertDispatchPanel({ scenario }: { scenario: Scenario }) {
             </table>
           )}
         </div>
-        <div className="w-64 shrink-0 overflow-y-auto border-l border-slate-900 pl-3">
+        <div className="max-h-32 shrink-0 overflow-y-auto border-t border-slate-900 pt-3 md:max-h-none md:w-64 md:border-l md:border-t-0 md:pl-3 md:pt-0">
           <div className="mb-1 text-[11px] font-medium uppercase tracking-wide text-slate-500">
             Alert Log
           </div>

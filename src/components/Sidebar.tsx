@@ -1,24 +1,11 @@
 "use client";
 
-import { IconAlert, IconCommunity, IconDashboard, IconSensor } from "@/components/icons";
-
-const NAV_ITEMS = [
-  { label: "Dashboard", icon: IconDashboard, targetId: "dashboard-map" },
-  { label: "Alerts", icon: IconAlert, targetId: "alert-dispatch" },
-  { label: "Sensors", icon: IconSensor, targetId: "sensor-status" },
-];
-
-function jumpTo(targetId: string) {
-  const el = document.getElementById(targetId);
-  if (!el) return;
-  el.scrollIntoView({ behavior: "smooth", block: "nearest" });
-  el.classList.add("ring-2", "ring-blue-500");
-  window.setTimeout(() => el.classList.remove("ring-2", "ring-blue-500"), 1000);
-}
+import { IconCommunity } from "@/components/icons";
+import { NAV_ITEMS, jumpTo } from "@/lib/nav";
 
 export function Sidebar() {
   return (
-    <aside className="hidden w-48 shrink-0 flex-col justify-between border-r border-slate-800 bg-slate-950 p-3 sm:flex">
+    <aside className="hidden w-48 shrink-0 flex-col justify-between border-r border-slate-800 bg-slate-950 p-3 md:flex">
       <nav className="flex flex-col gap-1">
         {NAV_ITEMS.map(({ label, icon: Icon, targetId }) => (
           <button

@@ -29,7 +29,7 @@ export function CommunityReportFeed({ scenario }: { scenario: Scenario }) {
   }, [scenario]);
 
   return (
-    <section className="flex h-40 w-72 shrink-0 flex-col rounded border border-slate-800 bg-slate-950 p-3">
+    <section className="flex h-40 w-full shrink-0 flex-col rounded border border-slate-800 bg-slate-950 p-3 md:w-72">
       <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
         Community Reports
       </h2>
