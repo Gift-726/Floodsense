@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import {
   Area,
   CartesianGrid,
@@ -12,6 +11,8 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { ErrorState } from "@/components/ErrorState";
+import { useApi } from "@/lib/useApi";
 import type { ForecastResponse } from "@/lib/types";
 import type { Scenario } from "@/lib/scenario";
 
@@ -22,28 +23,16 @@ type ChartPoint = {
 };
 
 export function ForecastPanel({ scenario }: { scenario: Scenario }) {
-  const [data, setData] = useState<ChartPoint[] | null>(null);
-  const [lagdoActive, setLagdoActive] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetch(`/api/forecast?scenario=${scenario}`)
-      .then((r) => r.json() as Promise<ForecastResponse>)
-      .then((forecast) => {
-        if (cancelled) return;
-        setLagdoActive(forecast.lagdo_risk_flag);
-        setData(
-          forecast.hours.map((h) => ({
-            hour: h.hour,
-            probability: h.probability,
-            band: [h.confidence_low, h.confidence_high],
-          }))
-        );
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [scenario]);
+  const { data: forecast, error, loading, retry } = useApi<ForecastResponse>(
+    `/api/forecast?scenario=${scenario}`
+  );
+  const lagdoActive = forecast?.lagdo_risk_flag ?? false;
+  const data: ChartPoint[] | null =
+    forecast?.hours.map((h) => ({
+      hour: h.hour,
+      probability: h.probability,
+      band: [h.confidence_low, h.confidence_high],
+    })) ?? null;
 
   return (
     <section className="rounded border border-slate-800 bg-slate-950 p-3">
@@ -58,7 +47,9 @@ export function ForecastPanel({ scenario }: { scenario: Scenario }) {
         )}
       </div>
       <div className="h-44">
-        {!data ? (
+        {error ? (
+          <ErrorState message={error} onRetry={retry} />
+        ) : loading || !data ? (
           <div className="flex h-full items-center justify-center text-xs text-slate-600">
             Loading forecast…
           </div>

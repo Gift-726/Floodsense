@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { StatTile } from "@/components/StatTile";
+import { ErrorState } from "@/components/ErrorState";
 import type { AlertsResponse, ForecastResponse, SensorsResponse } from "@/lib/types";
 import type { Scenario } from "@/lib/scenario";
 
@@ -23,37 +24,60 @@ function peakAccent(probability: number): "good" | "warning" | "serious" | "crit
 
 export function OverviewStats({ scenario }: { scenario: Scenario }) {
   const [stats, setStats] = useState<Stats | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const load = useCallback(
+    async (isPoll: boolean) => {
+      try {
+        const fetchJson = async <T,>(url: string): Promise<T> => {
+          const r = await fetch(url);
+          if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+          return r.json() as Promise<T>;
+        };
+        const [forecast, sensors, alerts] = await Promise.all([
+          fetchJson<ForecastResponse>(`/api/forecast?scenario=${scenario}`),
+          fetchJson<SensorsResponse>(`/api/sensors?scenario=${scenario}`),
+          fetchJson<AlertsResponse>(`/api/alerts?scenario=${scenario}`),
+        ]);
+
+        setStats({
+          activeAlerts: alerts.communities.filter(
+            (c) => c.status === "alerted" || c.status === "evacuating"
+          ).length,
+          totalCommunities: alerts.communities.length,
+          nodesOnline: sensors.nodes.filter((n) => n.status === "online").length,
+          totalNodes: sensors.nodes.length,
+          lagdoActive: forecast.lagdo_risk_flag,
+          peakProbability: Math.max(0, ...forecast.hours.map((h) => h.probability)),
+        });
+        setError(null);
+      } catch (err) {
+        if (!isPoll) setError(err instanceof Error ? err.message : "Failed to load");
+      }
+    },
+    [scenario]
+  );
 
   useEffect(() => {
     let cancelled = false;
-
-    async function load() {
-      const [forecast, sensors, alerts] = await Promise.all([
-        fetch(`/api/forecast?scenario=${scenario}`).then((r) => r.json() as Promise<ForecastResponse>),
-        fetch(`/api/sensors?scenario=${scenario}`).then((r) => r.json() as Promise<SensorsResponse>),
-        fetch(`/api/alerts?scenario=${scenario}`).then((r) => r.json() as Promise<AlertsResponse>),
-      ]);
-      if (cancelled) return;
-
-      setStats({
-        activeAlerts: alerts.communities.filter(
-          (c) => c.status === "alerted" || c.status === "evacuating"
-        ).length,
-        totalCommunities: alerts.communities.length,
-        nodesOnline: sensors.nodes.filter((n) => n.status === "online").length,
-        totalNodes: sensors.nodes.length,
-        lagdoActive: forecast.lagdo_risk_flag,
-        peakProbability: Math.max(0, ...forecast.hours.map((h) => h.probability)),
-      });
-    }
-
-    load();
-    const interval = window.setInterval(load, 5000);
+    const wrappedLoad = (isPoll: boolean) => {
+      if (!cancelled) load(isPoll);
+    };
+    wrappedLoad(false);
+    const interval = window.setInterval(() => wrappedLoad(true), 5000);
     return () => {
       cancelled = true;
       window.clearInterval(interval);
     };
-  }, [scenario]);
+  }, [load]);
+
+  if (error && !stats) {
+    return (
+      <div className="h-[88px] border-b border-slate-800 bg-slate-900 p-3">
+        <ErrorState message={error} onRetry={() => load(false)} />
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-2 gap-3 border-b border-slate-800 bg-slate-900 p-3 sm:grid-cols-4">

@@ -18,24 +18,30 @@ export default function CommunityPage() {
   const [receiptConfirmed, setReceiptConfirmed] = useState(false);
   const [submittedLevel, setSubmittedLevel] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   function resetSimulation(nextCommunity?: string) {
     if (nextCommunity) setCommunity(nextCommunity);
     setScreen("alert");
     setReceiptConfirmed(false);
     setSubmittedLevel(null);
+    setSubmitError(null);
   }
 
   async function submitReport(levelLabel: string) {
     setSubmitting(true);
+    setSubmitError(null);
     try {
-      await fetch("/api/alerts/report", {
+      const res = await fetch("/api/alerts/report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ community, water_level: levelLabel }),
       });
+      if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
       setSubmittedLevel(levelLabel);
       setScreen("confirmation");
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "Failed to send report");
     } finally {
       setSubmitting(false);
     }
@@ -48,7 +54,7 @@ export default function CommunityPage() {
         <select
           value={community}
           onChange={(e) => resetSimulation(e.target.value)}
-          className="w-full rounded border border-slate-700 bg-slate-800 px-2 py-1.5 text-sm text-slate-100"
+          className="w-full rounded border border-slate-700 bg-slate-800 px-2 py-1.5 text-sm text-slate-100 [color-scheme:dark]"
         >
           {KOGI_PLACES.map((p) => (
             <option key={p.name} value={p.name}>
@@ -92,6 +98,9 @@ export default function CommunityPage() {
                 </p>
               ))}
               <p>0. Back</p>
+              {submitError && (
+                <p className="mt-2 text-red-400">Send failed: {submitError}</p>
+              )}
             </>
           )}
 

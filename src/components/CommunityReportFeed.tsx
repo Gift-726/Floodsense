@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import type { AlertsResponse, CommunityReport } from "@/lib/types";
+import { ErrorState } from "@/components/ErrorState";
+import { useApi } from "@/lib/useApi";
+import type { AlertsResponse } from "@/lib/types";
 import type { Scenario } from "@/lib/scenario";
 
 function timeLabel(iso: string) {
@@ -9,31 +10,20 @@ function timeLabel(iso: string) {
 }
 
 export function CommunityReportFeed({ scenario }: { scenario: Scenario }) {
-  const [reports, setReports] = useState<CommunityReport[] | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    function load() {
-      fetch(`/api/alerts?scenario=${scenario}`)
-        .then((r) => r.json() as Promise<AlertsResponse>)
-        .then((data) => {
-          if (!cancelled) setReports(data.reports);
-        });
-    }
-    load();
-    const interval = window.setInterval(load, 3000);
-    return () => {
-      cancelled = true;
-      window.clearInterval(interval);
-    };
-  }, [scenario]);
+  const { data, error, loading, retry } = useApi<AlertsResponse>(
+    `/api/alerts?scenario=${scenario}`,
+    3000
+  );
+  const reports = data?.reports ?? null;
 
   return (
     <section className="flex h-40 w-full shrink-0 flex-col rounded border border-slate-800 bg-slate-950 p-3 md:w-72">
       <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
         Community Reports
       </h2>
-      {!reports ? (
+      {error && !reports ? (
+        <ErrorState message={error} onRetry={retry} />
+      ) : loading || !reports ? (
         <div className="flex flex-1 items-center justify-center text-xs text-slate-600">
           Loading…
         </div>

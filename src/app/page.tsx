@@ -1,18 +1,44 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { Header } from "@/components/Header";
 import { Sidebar } from "@/components/Sidebar";
 import { MobileNav } from "@/components/MobileNav";
-import { MapView } from "@/components/MapView";
 import { LagdoBanner } from "@/components/LagdoBanner";
 import { OverviewStats } from "@/components/OverviewStats";
-import { ForecastPanel } from "@/components/ForecastPanel";
 import { SensorPanel } from "@/components/SensorPanel";
 import { AlertDispatchPanel } from "@/components/AlertDispatchPanel";
 import { CommunityReportFeed } from "@/components/CommunityReportFeed";
 import { ScenarioSwitcher } from "@/components/ScenarioSwitcher";
 import type { Scenario } from "@/lib/scenario";
+
+// Mapbox GL and Recharts are the two heaviest dependencies in the bundle —
+// load them as separate chunks so the header/stats/nav shell paints
+// immediately instead of waiting on ~500kB of JS it doesn't need.
+const MapView = dynamic(() => import("@/components/MapView").then((m) => m.MapView), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-full w-full items-center justify-center bg-slate-900 text-xs text-slate-600">
+      Loading map…
+    </div>
+  ),
+});
+
+const ForecastPanel = dynamic(
+  () => import("@/components/ForecastPanel").then((m) => m.ForecastPanel),
+  {
+    ssr: false,
+    loading: () => (
+      <section className="rounded border border-slate-800 bg-slate-950 p-3">
+        <div className="mb-2 h-3.5 w-32 rounded bg-slate-800" />
+        <div className="flex h-44 items-center justify-center text-xs text-slate-600">
+          Loading forecast…
+        </div>
+      </section>
+    ),
+  }
+);
 
 export default function DashboardPage() {
   const [scenario, setScenario] = useState<Scenario>("t72");

@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { IconTrendDown, IconTrendFlat, IconTrendUp } from "@/components/icons";
-import type { SensorNode, SensorsResponse, SensorStatus } from "@/lib/types";
+import { ErrorState } from "@/components/ErrorState";
+import { useApi } from "@/lib/useApi";
+import type { SensorsResponse, SensorStatus } from "@/lib/types";
 import type { Scenario } from "@/lib/scenario";
 
 const STATUS_ORDER: Record<SensorStatus, number> = { offline: 0, warning: 1, online: 2 };
@@ -16,24 +17,13 @@ const STATUS_STYLE: Record<SensorStatus, { dot: string; text: string }> = {
 const TREND_ICON = { rising: IconTrendUp, stable: IconTrendFlat, falling: IconTrendDown };
 
 export function SensorPanel({ scenario }: { scenario: Scenario }) {
-  const [nodes, setNodes] = useState<SensorNode[] | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetch(`/api/sensors?scenario=${scenario}`)
-      .then((r) => r.json() as Promise<SensorsResponse>)
-      .then((data) => {
-        if (!cancelled) {
-          setNodes(
-            [...data.nodes].sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status])
-          );
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [scenario]);
-
+  const { data, error, loading, retry } = useApi<SensorsResponse>(
+    `/api/sensors?scenario=${scenario}`,
+    10000
+  );
+  const nodes = data
+    ? [...data.nodes].sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status])
+    : null;
   const onlineCount = nodes?.filter((n) => n.status === "online").length ?? 0;
 
   return (
@@ -44,7 +34,9 @@ export function SensorPanel({ scenario }: { scenario: Scenario }) {
       <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
         Sensor Status ({onlineCount}/{nodes?.length ?? 35} nodes)
       </h2>
-      {!nodes ? (
+      {error ? (
+        <ErrorState message={error} onRetry={retry} />
+      ) : loading || !nodes ? (
         <div className="flex flex-1 items-center justify-center text-xs text-slate-600">
           Loading sensors…
         </div>

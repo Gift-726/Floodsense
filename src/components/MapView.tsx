@@ -46,6 +46,10 @@ export function MapView({ scenario }: { scenario: Scenario }) {
     });
     mapRef.current = map;
     map.addControl(new mapboxgl.NavigationControl(), "top-right");
+    map.on("error", (e) => {
+      console.error("Mapbox error:", e.error);
+      setError("Map failed to load — check your Mapbox token and network connection.");
+    });
 
     const hoverPopup = new mapboxgl.Popup({
       closeButton: false,
@@ -104,25 +108,33 @@ export function MapView({ scenario }: { scenario: Scenario }) {
   // (Re)load sensor + community markers whenever the map is ready or the scenario changes.
   useEffect(() => {
     if (!ready || !mapRef.current) return;
-    loadMarkers(mapRef.current, markersRef.current, scenario);
+    loadMarkers(mapRef.current, markersRef.current, scenario).catch((err) => {
+      console.error("Failed to load map markers:", err);
+    });
   }, [ready, scenario]);
 
   // Poll for new community reports and pulse the matching marker.
   useEffect(() => {
     if (!ready) return;
     const interval = window.setInterval(async () => {
-      const alerts: AlertsResponse = await fetch(`/api/alerts?scenario=${scenario}`).then((r) => r.json());
-      for (const report of alerts.reports) {
-        const key = `${report.community}-${report.time}`;
-        if (seenReportsRef.current.has(key)) continue;
-        seenReportsRef.current.add(key);
-        const handle = markersRef.current.communities.get(report.community);
-        if (handle) {
-          handle.el.classList.remove("marker-pulse");
-          // restart animation
-          void handle.el.offsetWidth;
-          handle.el.classList.add("marker-pulse");
+      try {
+        const res = await fetch(`/api/alerts?scenario=${scenario}`);
+        if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+        const alerts: AlertsResponse = await res.json();
+        for (const report of alerts.reports) {
+          const key = `${report.community}-${report.time}`;
+          if (seenReportsRef.current.has(key)) continue;
+          seenReportsRef.current.add(key);
+          const handle = markersRef.current.communities.get(report.community);
+          if (handle) {
+            handle.el.classList.remove("marker-pulse");
+            // restart animation
+            void handle.el.offsetWidth;
+            handle.el.classList.add("marker-pulse");
+          }
         }
+      } catch (err) {
+        console.error("Failed to poll community reports:", err);
       }
     }, 3000);
     return () => window.clearInterval(interval);
@@ -165,9 +177,15 @@ async function loadMarkers(map: mapboxgl.Map, handles: MarkerHandles, scenario: 
   handles.sensors = [];
   handles.communities.clear();
 
+  const fetchJson = async <T,>(url: string): Promise<T> => {
+    const r = await fetch(url);
+    if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+    return r.json() as Promise<T>;
+  };
+
   const [sensors, alerts] = await Promise.all([
-    fetch(`/api/sensors?scenario=${scenario}`).then((r) => r.json() as Promise<SensorsResponse>),
-    fetch(`/api/alerts?scenario=${scenario}`).then((r) => r.json() as Promise<AlertsResponse>),
+    fetchJson<SensorsResponse>(`/api/sensors?scenario=${scenario}`),
+    fetchJson<AlertsResponse>(`/api/alerts?scenario=${scenario}`),
   ]);
 
   sensors.nodes.forEach((node) => {

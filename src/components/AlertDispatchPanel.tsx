@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { RISK_COLOR } from "@/lib/mockRisk";
 import { COMMUNITY_STATUS_COLOR } from "@/lib/statusColors";
+import { ErrorState } from "@/components/ErrorState";
 import type { Scenario } from "@/lib/scenario";
 import type { AlertLogEntry, AlertsResponse, Community } from "@/lib/types";
 
@@ -14,14 +15,23 @@ export function AlertDispatchPanel({ scenario }: { scenario: Scenario }) {
   const [communities, setCommunities] = useState<Community[] | null>(null);
   const [alertLog, setAlertLog] = useState<AlertLogEntry[]>([]);
   const [dispatching, setDispatching] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [dispatchError, setDispatchError] = useState<string | null>(null);
   const pollRef = useRef<number | null>(null);
 
   const load = useCallback(() => {
     fetch(`/api/alerts?scenario=${scenario}`)
-      .then((r) => r.json() as Promise<AlertsResponse>)
+      .then((r) => {
+        if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+        return r.json() as Promise<AlertsResponse>;
+      })
       .then((data) => {
         setCommunities(data.communities);
         setAlertLog(data.alert_log);
+        setLoadError(null);
+      })
+      .catch((err: unknown) => {
+        setLoadError(err instanceof Error ? err.message : "Failed to load");
       });
   }, [scenario]);
 
@@ -35,13 +45,17 @@ export function AlertDispatchPanel({ scenario }: { scenario: Scenario }) {
 
   async function handleDispatch() {
     setDispatching(true);
+    setDispatchError(null);
     try {
-      await fetch("/api/alerts/dispatch", {
+      const res = await fetch("/api/alerts/dispatch", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ scenario }),
       });
+      if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
       load();
+    } catch (err) {
+      setDispatchError(err instanceof Error ? err.message : "Dispatch failed");
     } finally {
       setDispatching(false);
     }
@@ -58,18 +72,25 @@ export function AlertDispatchPanel({ scenario }: { scenario: Scenario }) {
         <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-400">
           Alert Dispatch
         </h2>
-        <button
-          type="button"
-          onClick={handleDispatch}
-          disabled={!dispatchable || dispatching}
-          className="rounded bg-[var(--status-critical)] px-3 py-1 text-xs font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-30"
-        >
-          {dispatching ? "Dispatching…" : "Dispatch Alert"}
-        </button>
+        <div className="flex items-center gap-2">
+          {dispatchError && (
+            <span className="text-[11px] text-[var(--status-critical)]">{dispatchError}</span>
+          )}
+          <button
+            type="button"
+            onClick={handleDispatch}
+            disabled={!dispatchable || dispatching}
+            className="rounded bg-[var(--status-critical)] px-3 py-1 text-xs font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-30"
+          >
+            {dispatching ? "Dispatching…" : "Dispatch Alert"}
+          </button>
+        </div>
       </div>
       <div className="flex min-h-0 flex-1 flex-col gap-3 md:flex-row">
         <div className="min-w-0 flex-1 overflow-auto">
-          {!communities ? (
+          {loadError && !communities ? (
+            <ErrorState message={loadError} onRetry={load} />
+          ) : !communities ? (
             <div className="flex h-full items-center justify-center text-xs text-slate-600">
               Loading communities…
             </div>
