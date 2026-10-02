@@ -5,9 +5,9 @@ import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { KOGI_CENTER, KOGI_DEFAULT_ZOOM } from "@/lib/kogi";
 import { LGA_RISK, RISK_COLOR, RISK_ORDER, type RiskLevel } from "@/lib/mockRisk";
-import { SENSOR_STATUS_COLOR, COMMUNITY_STATUS_COLOR } from "@/lib/statusColors";
+import { SENSOR_SCENARIO_COLOR, SENSOR_SCENARIO_DEFAULT_COLOR, COMMUNITY_STATUS_COLOR } from "@/lib/statusColors";
 import type { AlertsResponse, SensorsResponse } from "@/lib/types";
-import type { Scenario } from "@/lib/scenario";
+import type { FocusHorizon } from "@/lib/model";
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
@@ -21,7 +21,7 @@ type MarkerHandles = {
   communities: Map<string, { marker: mapboxgl.Marker; el: HTMLDivElement }>;
 };
 
-export function MapView({ scenario }: { scenario: Scenario }) {
+export function MapView({ horizon }: { horizon: FocusHorizon }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<MarkerHandles>({ sensors: [], communities: new Map() });
@@ -105,20 +105,20 @@ export function MapView({ scenario }: { scenario: Scenario }) {
     };
   }, []);
 
-  // (Re)load sensor + community markers whenever the map is ready or the scenario changes.
+  // (Re)load sensor + community markers whenever the map is ready or the focused horizon changes.
   useEffect(() => {
     if (!ready || !mapRef.current) return;
-    loadMarkers(mapRef.current, markersRef.current, scenario).catch((err) => {
+    loadMarkers(mapRef.current, markersRef.current, horizon).catch((err) => {
       console.error("Failed to load map markers:", err);
     });
-  }, [ready, scenario]);
+  }, [ready, horizon]);
 
   // Poll for new community reports and pulse the matching marker.
   useEffect(() => {
     if (!ready) return;
     const interval = window.setInterval(async () => {
       try {
-        const res = await fetch(`/api/alerts?scenario=${scenario}`);
+        const res = await fetch(`/api/alerts?horizon=${horizon}`);
         if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
         const alerts: AlertsResponse = await res.json();
         for (const report of alerts.reports) {
@@ -138,7 +138,7 @@ export function MapView({ scenario }: { scenario: Scenario }) {
       }
     }, 3000);
     return () => window.clearInterval(interval);
-  }, [ready, scenario]);
+  }, [ready, horizon]);
 
   if (error) {
     return (
@@ -171,7 +171,7 @@ export function MapView({ scenario }: { scenario: Scenario }) {
   );
 }
 
-async function loadMarkers(map: mapboxgl.Map, handles: MarkerHandles, scenario: Scenario) {
+async function loadMarkers(map: mapboxgl.Map, handles: MarkerHandles, horizon: FocusHorizon) {
   handles.sensors.forEach((m) => m.remove());
   handles.communities.forEach(({ marker }) => marker.remove());
   handles.sensors = [];
@@ -184,15 +184,16 @@ async function loadMarkers(map: mapboxgl.Map, handles: MarkerHandles, scenario: 
   };
 
   const [sensors, alerts] = await Promise.all([
-    fetchJson<SensorsResponse>(`/api/sensors?scenario=${scenario}`),
-    fetchJson<AlertsResponse>(`/api/alerts?scenario=${scenario}`),
+    fetchJson<SensorsResponse>("/api/sensors"),
+    fetchJson<AlertsResponse>(`/api/alerts?horizon=${horizon}`),
   ]);
 
   sensors.nodes.forEach((node) => {
+    const color = SENSOR_SCENARIO_COLOR[node.scenario] ?? SENSOR_SCENARIO_DEFAULT_COLOR;
     const el = document.createElement("div");
-    el.style.cssText = `width:9px;height:9px;border-radius:50%;background:${SENSOR_STATUS_COLOR[node.status]};border:1.5px solid #0f172a;cursor:pointer;`;
+    el.style.cssText = `width:9px;height:9px;border-radius:50%;background:${color};border:1.5px solid #0f172a;cursor:pointer;`;
     const popup = new mapboxgl.Popup({ offset: 10 }).setHTML(
-      `<div style="font:12px system-ui;color:#0f172a"><strong>${node.name}</strong><br/>${node.river} river &middot; ${node.lga}<br/>${node.reading_m.toFixed(1)}m &middot; ${node.status}</div>`
+      `<div style="font:12px system-ui;color:#0f172a"><strong>${node.name}</strong><br/>${node.river} river &middot; ${node.lga}<br/>${node.water_level_m.toFixed(2)}m &middot; ${Math.round(node.discharge_m3s)} m³/s &middot; ${node.scenario}</div>`
     );
     const marker = new mapboxgl.Marker({ element: el })
       .setLngLat([node.lng, node.lat])

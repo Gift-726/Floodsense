@@ -1,55 +1,48 @@
+import fs from "node:fs";
+import path from "node:path";
 import { NextResponse } from "next/server";
 import { KOGI_PLACES } from "@/lib/kogiPlaces";
-import { isScenario, SCENARIO_INTENSITY, type Scenario } from "@/lib/scenario";
+import type { ModelSensorSnapshot } from "@/lib/model";
 
-// Stub implementation — Week 1 skeleton only.
-// GIS Person's sensor_nodes.geojson + Data Scientist's simulator replace this
-// per API_CONTRACT.md. Coordinates jitter around real Kogi towns (see
-// kogiPlaces.ts) — not surveyed bridge/gauge GPS pins.
+// Real model-driven sensor simulator output from the Data Scientist's
+// handoff — discharge/water-level readings and the "scenario" label are
+// real. The 35 readings carry no location metadata, so we position them at
+// our own real-town anchors (kogiPlaces.ts) in file order — an honest,
+// clearly-labeled placement, not a claim that KGI-S01 actually sits in
+// Lokoja. See docs/MODEL_HANDOFF.md.
+const SENSOR_FILE = path.join(process.cwd(), "src/data/model/sensor_readings.json");
 
-const TRENDS = ["rising", "stable", "falling"] as const;
+// Force dynamic — see forecast/route.ts for why.
+export const dynamic = "force-dynamic";
 
-// Deterministic pseudo-random in [0, 1) so the layout is stable across requests.
-function pseudoRandom(seed: number) {
+function jitter(seed: number) {
   const x = Math.sin(seed * 999.123) * 10000;
-  return x - Math.floor(x);
+  return (x - Math.floor(x) - 0.5) * 0.12;
 }
 
-function statusForIntensity(id: number, intensity: number): "online" | "warning" | "offline" {
-  const roll = pseudoRandom(id * 3.7);
-  // More nodes drop to warning/offline as the scenario intensifies.
-  if (roll < intensity * 0.35) return "offline";
-  if (roll < intensity * 0.6) return "warning";
-  return "online";
-}
+export async function GET() {
+  const raw = fs.readFileSync(SENSOR_FILE, "utf8");
+  const snapshot = JSON.parse(raw) as ModelSensorSnapshot;
 
-function buildMockSensors(scenario: Scenario) {
-  const intensity = SCENARIO_INTENSITY[scenario];
-  const nodes = Array.from({ length: 35 }, (_, i) => {
-    const id = i + 1;
-    const place = KOGI_PLACES[id % KOGI_PLACES.length];
-    const jitter = () => (pseudoRandom(id * 7 + place.lat) - 0.5) * 0.12;
-
+  const nodes = snapshot.sensors.map((sensor, i) => {
+    const place = KOGI_PLACES[i % KOGI_PLACES.length];
     return {
-      node_id: `KG-${String(id).padStart(2, "0")}`,
-      name: `${place.name} Gauge ${Math.ceil(id / KOGI_PLACES.length)}`,
+      node_id: sensor.sensor_id,
+      name: `${place.name} Gauge`,
       lga: place.lga,
       river: place.river,
-      lat: Number((place.lat + jitter()).toFixed(4)),
-      lng: Number((place.lng + jitter()).toFixed(4)),
-      status: statusForIntensity(id, intensity),
-      reading_m: Number((1.5 + (id % 5) * 0.3 + intensity * 3.5).toFixed(1)),
-      trend: intensity > 0.4 ? "rising" : TRENDS[id % TRENDS.length],
-      last_updated: new Date().toISOString(),
+      lat: Number((place.lat + jitter(i * 7)).toFixed(4)),
+      lng: Number((place.lng + jitter(i * 11)).toFixed(4)),
+      scenario: sensor.scenario,
+      discharge_m3s: sensor.simulated_discharge_m3s,
+      water_level_m: sensor.simulated_water_level_m,
     };
   });
 
-  return { updated_at: new Date().toISOString(), nodes };
-}
-
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const raw = searchParams.get("scenario");
-  const scenario = isScenario(raw) ? raw : "t72";
-  return NextResponse.json(buildMockSensors(scenario));
+  return NextResponse.json({
+    updated_at: snapshot.timestamp,
+    model_lead_day: snapshot.model_lead_day,
+    daily_model_flood_probability: snapshot.daily_model_flood_probability,
+    nodes,
+  });
 }

@@ -3,15 +3,15 @@
 import { ErrorState } from "@/components/ErrorState";
 import { useApi } from "@/lib/useApi";
 import type { AlertsResponse } from "@/lib/types";
-import type { Scenario } from "@/lib/scenario";
+import type { FocusHorizon } from "@/lib/model";
 
 function timeLabel(iso: string) {
   return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
 }
 
-export function CommunityReportFeed({ scenario }: { scenario: Scenario }) {
+export function CommunityReportFeed({ horizon }: { horizon: FocusHorizon }) {
   const { data, error, loading, retry } = useApi<AlertsResponse>(
-    `/api/alerts?scenario=${scenario}`,
+    `/api/alerts?horizon=${horizon}`,
     3000
   );
   const reports = data?.reports ?? null;

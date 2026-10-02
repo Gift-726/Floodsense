@@ -1,21 +1,5 @@
 // Shapes mirror API_CONTRACT.md — keep both in sync.
-
-export type ForecastHour = {
-  hour: number;
-  probability: number;
-  confidence_low: number;
-  confidence_high: number;
-};
-
-export type ForecastResponse = {
-  scenario: "t72" | "t24" | "t0";
-  generated_at: string;
-  lagdo_risk_flag: boolean;
-  hours: ForecastHour[];
-};
-
-export type SensorStatus = "online" | "warning" | "offline";
-export type SensorTrend = "rising" | "stable" | "falling";
+// Forecast shapes live in lib/model.ts (real FloodSense model output).
 
 export type SensorNode = {
   node_id: string;
@@ -24,14 +8,15 @@ export type SensorNode = {
   river: string;
   lat: number;
   lng: number;
-  status: SensorStatus;
-  reading_m: number;
-  trend: SensorTrend;
-  last_updated: string;
+  scenario: string;
+  discharge_m3s: number;
+  water_level_m: number;
 };
 
 export type SensorsResponse = {
   updated_at: string;
+  model_lead_day: number;
+  daily_model_flood_probability: number;
   nodes: SensorNode[];
 };
 
@@ -42,7 +27,6 @@ export type Community = {
   name: string;
   lga: string;
   severity: CommunitySeverity;
-  est_flood_arrival_hours: number;
   population: number;
   status: CommunityStatus;
 };

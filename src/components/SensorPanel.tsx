@@ -1,30 +1,20 @@
 "use client";
 
-import { IconTrendDown, IconTrendFlat, IconTrendUp } from "@/components/icons";
 import { ErrorState } from "@/components/ErrorState";
 import { useApi } from "@/lib/useApi";
-import type { SensorsResponse, SensorStatus } from "@/lib/types";
-import type { Scenario } from "@/lib/scenario";
+import type { SensorsResponse } from "@/lib/types";
 
-const STATUS_ORDER: Record<SensorStatus, number> = { offline: 0, warning: 1, online: 2 };
-
-const STATUS_STYLE: Record<SensorStatus, { dot: string; text: string }> = {
-  online: { dot: "bg-[var(--status-good)]", text: "text-[var(--status-good)]" },
-  warning: { dot: "bg-[var(--status-warning)]", text: "text-[var(--status-warning)]" },
-  offline: { dot: "bg-[var(--status-critical)]", text: "text-[var(--status-critical)]" },
+const SCENARIO_STYLE: Record<string, { dot: string; text: string }> = {
+  NORMAL: { dot: "bg-[var(--status-good)]", text: "text-[var(--status-good)]" },
+  WARNING: { dot: "bg-[var(--status-warning)]", text: "text-[var(--status-warning)]" },
+  CRITICAL: { dot: "bg-[var(--status-critical)]", text: "text-[var(--status-critical)]" },
+  FLOOD: { dot: "bg-[var(--status-critical)]", text: "text-[var(--status-critical)]" },
 };
+const DEFAULT_STYLE = { dot: "bg-slate-500", text: "text-slate-400" };
 
-const TREND_ICON = { rising: IconTrendUp, stable: IconTrendFlat, falling: IconTrendDown };
-
-export function SensorPanel({ scenario }: { scenario: Scenario }) {
-  const { data, error, loading, retry } = useApi<SensorsResponse>(
-    `/api/sensors?scenario=${scenario}`,
-    10000
-  );
-  const nodes = data
-    ? [...data.nodes].sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status])
-    : null;
-  const onlineCount = nodes?.filter((n) => n.status === "online").length ?? 0;
+export function SensorPanel() {
+  const { data, error, loading, retry } = useApi<SensorsResponse>("/api/sensors", 15000);
+  const nodes = data?.nodes ?? null;
 
   return (
     <section
@@ -32,7 +22,7 @@ export function SensorPanel({ scenario }: { scenario: Scenario }) {
       className="flex min-h-0 flex-1 flex-col rounded border border-slate-800 bg-slate-950 p-3 transition-shadow"
     >
       <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
-        Sensor Status ({onlineCount}/{nodes?.length ?? 35} nodes)
+        Sensor Network ({nodes?.length ?? 35} nodes)
       </h2>
       {error ? (
         <ErrorState message={error} onRetry={retry} />
@@ -43,8 +33,7 @@ export function SensorPanel({ scenario }: { scenario: Scenario }) {
       ) : (
         <ul className="flex-1 divide-y divide-slate-900 overflow-y-auto">
           {nodes.map((node) => {
-            const TrendIcon = TREND_ICON[node.trend];
-            const style = STATUS_STYLE[node.status];
+            const style = SCENARIO_STYLE[node.scenario] ?? DEFAULT_STYLE;
             return (
               <li key={node.node_id} className="flex items-center justify-between gap-2 py-1.5">
                 <div className="min-w-0">
@@ -54,13 +43,12 @@ export function SensorPanel({ scenario }: { scenario: Scenario }) {
                   </div>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
-                  <span className="flex items-center gap-1 text-xs tabular-nums text-slate-300">
-                    <TrendIcon className="h-3 w-3 text-slate-500" />
-                    {node.reading_m.toFixed(1)}m
+                  <span className="text-xs tabular-nums text-slate-300">
+                    {node.water_level_m.toFixed(2)}m
                   </span>
-                  <span className={`flex items-center gap-1 text-[11px] ${style.text}`}>
+                  <span className={`flex items-center gap-1 text-[11px] capitalize ${style.text}`}>
                     <span className={`h-1.5 w-1.5 rounded-full ${style.dot}`} />
-                    {node.status}
+                    {node.scenario.toLowerCase()}
                   </span>
                 </div>
               </li>

@@ -14,6 +14,8 @@
   --status-critical-wash: rgba(208, 59, 59, 0.15);
   --status-critical-ring: rgba(208, 59, 59, 0.4);
   --status-critical-solid: rgba(208, 59, 59, 0.92);
+  --status-warning-solid: #8a5d0a;
+  --status-warning-ring: rgba(138, 93, 10, 0.5);
 
   /* Single-series chart accent (categorical slot 1, dark step) */
   --chart-line: #3987e5;

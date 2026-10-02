@@ -4,14 +4,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { RISK_COLOR } from "@/lib/mockRisk";
 import { COMMUNITY_STATUS_COLOR } from "@/lib/statusColors";
 import { ErrorState } from "@/components/ErrorState";
-import type { Scenario } from "@/lib/scenario";
+import type { FocusHorizon } from "@/lib/model";
 import type { AlertLogEntry, AlertsResponse, Community } from "@/lib/types";
 
 function timeLabel(iso: string) {
   return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
 }
 
-export function AlertDispatchPanel({ scenario }: { scenario: Scenario }) {
+export function AlertDispatchPanel({ horizon }: { horizon: FocusHorizon }) {
   const [communities, setCommunities] = useState<Community[] | null>(null);
   const [alertLog, setAlertLog] = useState<AlertLogEntry[]>([]);
   const [dispatching, setDispatching] = useState(false);
@@ -20,7 +20,7 @@ export function AlertDispatchPanel({ scenario }: { scenario: Scenario }) {
   const pollRef = useRef<number | null>(null);
 
   const load = useCallback(() => {
-    fetch(`/api/alerts?scenario=${scenario}`)
+    fetch(`/api/alerts?horizon=${horizon}`)
       .then((r) => {
         if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
         return r.json() as Promise<AlertsResponse>;
@@ -33,7 +33,7 @@ export function AlertDispatchPanel({ scenario }: { scenario: Scenario }) {
       .catch((err: unknown) => {
         setLoadError(err instanceof Error ? err.message : "Failed to load");
       });
-  }, [scenario]);
+  }, [horizon]);
 
   useEffect(() => {
     load();
@@ -50,7 +50,7 @@ export function AlertDispatchPanel({ scenario }: { scenario: Scenario }) {
       const res = await fetch("/api/alerts/dispatch", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ scenario }),
+        body: JSON.stringify({ horizon }),
       });
       if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
       load();
@@ -70,7 +70,7 @@ export function AlertDispatchPanel({ scenario }: { scenario: Scenario }) {
     >
       <div className="mb-2 flex items-center justify-between">
         <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-          Alert Dispatch
+          Alert Dispatch <span className="text-slate-600">&middot; T+{horizon}d outlook</span>
         </h2>
         <div className="flex items-center gap-2">
           {dispatchError && (
@@ -95,13 +95,12 @@ export function AlertDispatchPanel({ scenario }: { scenario: Scenario }) {
               Loading communities…
             </div>
           ) : (
-            <table className="w-full min-w-[520px] border-collapse text-xs">
+            <table className="w-full min-w-[460px] border-collapse text-xs">
               <thead className="sticky top-0 bg-slate-950 text-slate-500">
                 <tr className="text-left">
                   <th className="py-1 pr-2 font-medium">Community</th>
                   <th className="py-1 pr-2 font-medium">LGA</th>
                   <th className="py-1 pr-2 font-medium">Severity</th>
-                  <th className="py-1 pr-2 font-medium">ETA</th>
                   <th className="py-1 pr-2 font-medium">Population</th>
                   <th className="py-1 font-medium">Status</th>
                 </tr>
@@ -119,7 +118,6 @@ export function AlertDispatchPanel({ scenario }: { scenario: Scenario }) {
                         {c.severity}
                       </span>
                     </td>
-                    <td className="py-1.5 pr-2 tabular-nums text-slate-400">{c.est_flood_arrival_hours}h</td>
                     <td className="py-1.5 pr-2 tabular-nums text-slate-400">{c.population.toLocaleString()}</td>
                     <td className="py-1.5">
                       <span className="flex items-center gap-1 capitalize text-slate-300">

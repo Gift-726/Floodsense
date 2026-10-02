@@ -1,0 +1,293 @@
+{
+  "system": "FloodSense Kogi",
+  "data_type": "SIMULATED",
+  "source": "FloodSense model-driven sensor simulator",
+  "timestamp": "2025-12-31T00:00:00",
+  "sensor_count": 35,
+  "scenario": "NORMAL",
+  "model_lead_day": 0,
+  "daily_model_flood_probability": 0.0,
+  "flood_threshold_m3s": 17414.647,
+  "sensors": [
+    {
+      "sensor_id": "KGI-S01",
+      "sensor_name": "Kogi Sensor 01",
+      "simulated_discharge_m3s": 3428.15,
+      "simulated_water_level_m": 0.992,
+      "scenario": "NORMAL",
+      "data_type": "SIMULATED"
+    },
+    {
+      "sensor_id": "KGI-S21",
+      "sensor_name": "Kogi Sensor 21",
+      "simulated_discharge_m3s": 3428.15,
+      "simulated_water_level_m": 0.965,
+      "scenario": "NORMAL",
+      "data_type": "SIMULATED"
+    },
+    {
+      "sensor_id": "KGI-S22",
+      "sensor_name": "Kogi Sensor 22",
+      "simulated_discharge_m3s": 3428.15,
+      "simulated_water_level_m": 0.981,
+      "scenario": "NORMAL",
+      "data_type": "SIMULATED"
+    },
+    {
+      "sensor_id": "KGI-S23",
+      "sensor_name": "Kogi Sensor 23",
+      "simulated_discharge_m3s": 3428.15,
+      "simulated_water_level_m": 0.973,
+      "scenario": "NORMAL",
+      "data_type": "SIMULATED"
+    },
+    {
+      "sensor_id": "KGI-S24",
+      "sensor_name": "Kogi Sensor 24",
+      "simulated_discharge_m3s": 3428.15,
+      "simulated_water_level_m": 0.967,
+      "scenario": "NORMAL",
+      "data_type": "SIMULATED"
+    },
+    {
+      "sensor_id": "KGI-S25",
+      "sensor_name": "Kogi Sensor 25",
+      "simulated_discharge_m3s": 3428.15,
+      "simulated_water_level_m": 1.005,
+      "scenario": "NORMAL",
+      "data_type": "SIMULATED"
+    },
+    {
+      "sensor_id": "KGI-S27",
+      "sensor_name": "Kogi Sensor 27",
+      "simulated_discharge_m3s": 3428.15,
+      "simulated_water_level_m": 0.99,
+      "scenario": "NORMAL",
+      "data_type": "SIMULATED"
+    },
+    {
+      "sensor_id": "KGI-S20",
+      "sensor_name": "Kogi Sensor 20",
+      "simulated_discharge_m3s": 3428.15,
+      "simulated_water_level_m": 0.967,
+      "scenario": "NORMAL",
+      "data_type": "SIMULATED"
+    },
+    {
+      "sensor_id": "KGI-S28",
+      "sensor_name": "Kogi Sensor 28",
+      "simulated_discharge_m3s": 3428.15,
+      "simulated_water_level_m": 0.998,
+      "scenario": "NORMAL",
+      "data_type": "SIMULATED"
+    },
+    {
+      "sensor_id": "KGI-S30",
+      "sensor_name": "Kogi Sensor 30",
+      "simulated_discharge_m3s": 3428.15,
+      "simulated_water_level_m": 0.969,
+      "scenario": "NORMAL",
+      "data_type": "SIMULATED"
+    },
+    {
+      "sensor_id": "KGI-S31",
+      "sensor_name": "Kogi Sensor 31",
+      "simulated_discharge_m3s": 3428.15,
+      "simulated_water_level_m": 0.989,
+      "scenario": "NORMAL",
+      "data_type": "SIMULATED"
+    },
+    {
+      "sensor_id": "KGI-S32",
+      "sensor_name": "Kogi Sensor 32",
+      "simulated_discharge_m3s": 3428.15,
+      "simulated_water_level_m": 0.968,
+      "scenario": "NORMAL",
+      "data_type": "SIMULATED"
+    },
+    {
+      "sensor_id": "KGI-S33",
+      "sensor_name": "Kogi Sensor 33",
+      "simulated_discharge_m3s": 3428.15,
+      "simulated_water_level_m": 0.969,
+      "scenario": "NORMAL",
+      "data_type": "SIMULATED"
+    },
+    {
+      "sensor_id": "KGI-S34",
+      "sensor_name": "Kogi Sensor 34",
+      "simulated_discharge_m3s": 3428.15,
+      "simulated_water_level_m": 0.968,
+      "scenario": "NORMAL",
+      "data_type": "SIMULATED"
+    },
+    {
+      "sensor_id": "KGI-S35",
+      "sensor_name": "Kogi Sensor 35",
+      "simulated_discharge_m3s": 3428.15,
+      "simulated_water_level_m": 0.975,
+      "scenario": "NORMAL",
+      "data_type": "SIMULATED"
+    },
+    {
+      "sensor_id": "KGI-S29",
+      "sensor_name": "Kogi Sensor 29",
+      "simulated_discharge_m3s": 3428.15,
+      "simulated_water_level_m": 0.986,
+      "scenario": "NORMAL",
+      "data_type": "SIMULATED"
+    },
+    {
+      "sensor_id": "KGI-S19",
+      "sensor_name": "Kogi Sensor 19",
+      "simulated_discharge_m3s": 3428.15,
+      "simulated_water_level_m": 1.013,
+      "scenario": "NORMAL",
+      "data_type": "SIMULATED"
+    },
+    {
+      "sensor_id": "KGI-S26",
+      "sensor_name": "Kogi Sensor 26",
+      "simulated_discharge_m3s": 3428.15,
+      "simulated_water_level_m": 0.994,
+      "scenario": "NORMAL",
+      "data_type": "SIMULATED"
+    },
+    {
+      "sensor_id": "KGI-S17",
+      "sensor_name": "Kogi Sensor 17",
+      "simulated_discharge_m3s": 3428.15,
+      "simulated_water_level_m": 0.986,
+      "scenario": "NORMAL",
+      "data_type": "SIMULATED"
+    },
+    {
+      "sensor_id": "KGI-S18",
+      "sensor_name": "Kogi Sensor 18",
+      "simulated_discharge_m3s": 3428.15,
+      "simulated_water_level_m": 0.962,
+      "scenario": "NORMAL",
+      "data_type": "SIMULATED"
+    },
+    {
+      "sensor_id": "KGI-S03",
+      "sensor_name": "Kogi Sensor 03",
+      "simulated_discharge_m3s": 3428.15,
+      "simulated_water_level_m": 0.991,
+      "scenario": "NORMAL",
+      "data_type": "SIMULATED"
+    },
+    {
+      "sensor_id": "KGI-S04",
+      "sensor_name": "Kogi Sensor 04",
+      "simulated_discharge_m3s": 3428.15,
+      "simulated_water_level_m": 0.982,
+      "scenario": "NORMAL",
+      "data_type": "SIMULATED"
+    },
+    {
+      "sensor_id": "KGI-S05",
+      "sensor_name": "Kogi Sensor 05",
+      "simulated_discharge_m3s": 3428.15,
+      "simulated_water_level_m": 1.008,
+      "scenario": "NORMAL",
+      "data_type": "SIMULATED"
+    },
+    {
+      "sensor_id": "KGI-S06",
+      "sensor_name": "Kogi Sensor 06",
+      "simulated_discharge_m3s": 3428.15,
+      "simulated_water_level_m": 0.977,
+      "scenario": "NORMAL",
+      "data_type": "SIMULATED"
+    },
+    {
+      "sensor_id": "KGI-S07",
+      "sensor_name": "Kogi Sensor 07",
+      "simulated_discharge_m3s": 3428.15,
+      "simulated_water_level_m": 0.996,
+      "scenario": "NORMAL",
+      "data_type": "SIMULATED"
+    },
+    {
+      "sensor_id": "KGI-S08",
+      "sensor_name": "Kogi Sensor 08",
+      "simulated_discharge_m3s": 3428.15,
+      "simulated_water_level_m": 0.971,
+      "scenario": "NORMAL",
+      "data_type": "SIMULATED"
+    },
+    {
+      "sensor_id": "KGI-S09",
+      "sensor_name": "Kogi Sensor 09",
+      "simulated_discharge_m3s": 3428.15,
+      "simulated_water_level_m": 0.983,
+      "scenario": "NORMAL",
+      "data_type": "SIMULATED"
+    },
+    {
+      "sensor_id": "KGI-S02",
+      "sensor_name": "Kogi Sensor 02",
+      "simulated_discharge_m3s": 3428.15,
+      "simulated_water_level_m": 1.007,
+      "scenario": "NORMAL",
+      "data_type": "SIMULATED"
+    },
+    {
+      "sensor_id": "KGI-S11",
+      "sensor_name": "Kogi Sensor 11",
+      "simulated_discharge_m3s": 3428.15,
+      "simulated_water_level_m": 0.987,
+      "scenario": "NORMAL",
+      "data_type": "SIMULATED"
+    },
+    {
+      "sensor_id": "KGI-S12",
+      "sensor_name": "Kogi Sensor 12",
+      "simulated_discharge_m3s": 3428.15,
+      "simulated_water_level_m": 0.979,
+      "scenario": "NORMAL",
+      "data_type": "SIMULATED"
+    },
+    {
+      "sensor_id": "KGI-S13",
+      "sensor_name": "Kogi Sensor 13",
+      "simulated_discharge_m3s": 3428.15,
+      "simulated_water_level_m": 0.999,
+      "scenario": "NORMAL",
+      "data_type": "SIMULATED"
+    },
+    {
+      "sensor_id": "KGI-S14",
+      "sensor_name": "Kogi Sensor 14",
+      "simulated_discharge_m3s": 3428.15,
+      "simulated_water_level_m": 0.972,
+      "scenario": "NORMAL",
+      "data_type": "SIMULATED"
+    },
+    {
+      "sensor_id": "KGI-S15",
+      "sensor_name": "Kogi Sensor 15",
+      "simulated_discharge_m3s": 3428.15,
+      "simulated_water_level_m": 0.973,
+      "scenario": "NORMAL",
+      "data_type": "SIMULATED"
+    },
+    {
+      "sensor_id": "KGI-S16",
+      "sensor_name": "Kogi Sensor 16",
+      "simulated_discharge_m3s": 3428.15,
+      "simulated_water_level_m": 0.966,
+      "scenario": "NORMAL",
+      "data_type": "SIMULATED"
+    },
+    {
+      "sensor_id": "KGI-S10",
+      "sensor_name": "Kogi Sensor 10",
+      "simulated_discharge_m3s": 3428.15,
+      "simulated_water_level_m": 0.971,
+      "scenario": "NORMAL",
+      "data_type": "SIMULATED"
+    }
+  ]
+}

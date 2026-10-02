@@ -3,26 +3,25 @@
 import { useCallback, useEffect, useState } from "react";
 import { StatTile } from "@/components/StatTile";
 import { ErrorState } from "@/components/ErrorState";
-import type { AlertsResponse, ForecastResponse, SensorsResponse } from "@/lib/types";
-import type { Scenario } from "@/lib/scenario";
+import { pickHorizon, type FocusHorizon, type ModelForecast } from "@/lib/model";
+import type { AlertsResponse } from "@/lib/types";
 
 type Stats = {
   activeAlerts: number;
   totalCommunities: number;
-  nodesOnline: number;
-  totalNodes: number;
-  lagdoActive: boolean;
-  peakProbability: number;
+  warningState: "GREEN" | "YELLOW" | "RED";
+  floodProbability: number;
+  dischargeM3s: number;
+  thresholdM3s: number;
 };
 
-function peakAccent(probability: number): "good" | "warning" | "serious" | "critical" {
-  if (probability >= 75) return "critical";
-  if (probability >= 50) return "serious";
-  if (probability >= 25) return "warning";
-  return "good";
-}
+const WARNING_ACCENT: Record<Stats["warningState"], "good" | "warning" | "critical"> = {
+  GREEN: "good",
+  YELLOW: "warning",
+  RED: "critical",
+};
 
-export function OverviewStats({ scenario }: { scenario: Scenario }) {
+export function OverviewStats({ horizon }: { horizon: FocusHorizon }) {
   const [stats, setStats] = useState<Stats | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,28 +33,28 @@ export function OverviewStats({ scenario }: { scenario: Scenario }) {
           if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
           return r.json() as Promise<T>;
         };
-        const [forecast, sensors, alerts] = await Promise.all([
-          fetchJson<ForecastResponse>(`/api/forecast?scenario=${scenario}`),
-          fetchJson<SensorsResponse>(`/api/sensors?scenario=${scenario}`),
-          fetchJson<AlertsResponse>(`/api/alerts?scenario=${scenario}`),
+        const [forecast, alerts] = await Promise.all([
+          fetchJson<ModelForecast>("/api/forecast"),
+          fetchJson<AlertsResponse>(`/api/alerts?horizon=${horizon}`),
         ]);
+        const point = pickHorizon(forecast, horizon);
 
         setStats({
           activeAlerts: alerts.communities.filter(
             (c) => c.status === "alerted" || c.status === "evacuating"
           ).length,
           totalCommunities: alerts.communities.length,
-          nodesOnline: sensors.nodes.filter((n) => n.status === "online").length,
-          totalNodes: sensors.nodes.length,
-          lagdoActive: forecast.lagdo_risk_flag,
-          peakProbability: Math.max(0, ...forecast.hours.map((h) => h.probability)),
+          warningState: (point?.warning_state ?? "GREEN") as Stats["warningState"],
+          floodProbability: point?.flood_probability ?? 0,
+          dischargeM3s: point?.predicted_discharge_m3s ?? 0,
+          thresholdM3s: forecast.model.training_alert_threshold_m3s,
         });
         setError(null);
       } catch (err) {
         if (!isPoll) setError(err instanceof Error ? err.message : "Failed to load");
       }
     },
-    [scenario]
+    [horizon]
   );
 
   useEffect(() => {
@@ -88,22 +87,22 @@ export function OverviewStats({ scenario }: { scenario: Scenario }) {
         accent={stats && stats.activeAlerts > 0 ? "critical" : "good"}
       />
       <StatTile
-        label="Nodes Online"
-        value={stats ? `${stats.nodesOnline}/${stats.totalNodes}` : "—"}
-        caption="river gauge network"
-        accent={stats && stats.nodesOnline === stats.totalNodes ? "good" : "warning"}
+        label={`Warning State (T+${horizon}d)`}
+        value={stats ? stats.warningState : "—"}
+        caption="model-calibrated signal"
+        accent={stats ? WARNING_ACCENT[stats.warningState] : "neutral"}
       />
       <StatTile
-        label="Peak 72hr Risk"
-        value={stats ? `${stats.peakProbability}%` : "—"}
-        caption="flood probability"
-        accent={stats ? peakAccent(stats.peakProbability) : "neutral"}
+        label="Flood Probability"
+        value={stats ? `${(stats.floodProbability * 100).toFixed(1)}%` : "—"}
+        caption={`at T+${horizon} days`}
+        accent={stats ? WARNING_ACCENT[stats.warningState] : "neutral"}
       />
       <StatTile
-        label="Lagdo Proxy"
-        value={stats ? (stats.lagdoActive ? "Elevated" : "Normal") : "—"}
-        caption="upstream release risk"
-        accent={stats ? (stats.lagdoActive ? "critical" : "good") : "neutral"}
+        label="Discharge Forecast"
+        value={stats ? `${Math.round(stats.dischargeM3s).toLocaleString()} m³/s` : "—"}
+        caption={stats ? `threshold ${Math.round(stats.thresholdM3s).toLocaleString()} m³/s` : "loading…"}
+        accent="neutral"
       />
     </div>
   );

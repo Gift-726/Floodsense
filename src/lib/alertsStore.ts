@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { KOGI_PLACES } from "@/lib/kogiPlaces";
 import { LGA_RISK, RISK_ORDER, type RiskLevel } from "@/lib/mockRisk";
-import { SCENARIO_INTENSITY, type Scenario } from "@/lib/scenario";
+import { bumpForWarningState, pickHorizon, type FocusHorizon, type ModelForecast } from "@/lib/model";
 import type { AlertLogEntry, Community, CommunityReport, CommunityStatus } from "@/lib/types";
 
 // Demo state persisted to a local JSON file rather than kept purely in
@@ -11,6 +11,7 @@ import type { AlertLogEntry, Community, CommunityReport, CommunityStatus } from 
 // module-scope arrays. A file survives that. This is still a single-process,
 // single-file demo store — a real deployment needs a database.
 const STATE_FILE = path.join(process.cwd(), ".demo-state.json");
+const FORECAST_FILE = path.join(process.cwd(), "src/data/model/forecast.json");
 
 type DemoState = {
   alertLog: AlertLogEntry[];
@@ -41,33 +42,37 @@ function writeState(state: DemoState) {
   }
 }
 
-function severityForScenario(base: RiskLevel, intensity: number): RiskLevel {
-  const bump = intensity >= 1 ? 2 : intensity >= 0.5 ? 1 : 0;
+function warningStateAt(horizon: FocusHorizon) {
+  const raw = fs.readFileSync(FORECAST_FILE, "utf8");
+  const forecast = JSON.parse(raw) as ModelForecast;
+  return pickHorizon(forecast, horizon)?.warning_state;
+}
+
+function severityFor(base: RiskLevel, bump: number): RiskLevel {
   const idx = Math.min(RISK_ORDER.length - 1, RISK_ORDER.indexOf(base) + bump);
   return RISK_ORDER[idx];
 }
 
-function statusFor(severity: RiskLevel, name: string, scenario: Scenario, dispatched: Set<string>): CommunityStatus {
+function statusFor(severity: RiskLevel, name: string, dispatched: Set<string>): CommunityStatus {
   if (dispatched.has(name)) {
-    return severity === "critical" && scenario === "t0" ? "evacuating" : "alerted";
+    return severity === "critical" ? "evacuating" : "alerted";
   }
   if (severity === "critical" || severity === "high") return "warning";
   return "monitoring";
 }
 
-export function getCommunities(scenario: Scenario): Community[] {
-  const intensity = SCENARIO_INTENSITY[scenario];
+export function getCommunities(horizon: FocusHorizon): Community[] {
+  const bump = bumpForWarningState(warningStateAt(horizon));
   const dispatched = new Set(readState().dispatched);
   return KOGI_PLACES.map((place, i) => {
     const base = LGA_RISK[place.lga] ?? "low";
-    const severity = severityForScenario(base, intensity);
+    const severity = severityFor(base, bump);
     return {
       name: place.name,
       lga: place.lga,
       severity,
-      est_flood_arrival_hours: Math.max(1, Math.round(72 - i * 6 - intensity * 48)),
       population: 5000 + i * 1200,
-      status: statusFor(severity, place.name, scenario, dispatched),
+      status: statusFor(severity, place.name, dispatched),
     };
   });
 }
@@ -80,10 +85,10 @@ export function getReports(): CommunityReport[] {
   return readState().reports;
 }
 
-export function dispatchAlerts(scenario: Scenario): { dispatchedNow: string[]; alertLog: AlertLogEntry[] } {
+export function dispatchAlerts(horizon: FocusHorizon): { dispatchedNow: string[]; alertLog: AlertLogEntry[] } {
   const state = readState();
   const dispatchedSet = new Set(state.dispatched);
-  const communities = getCommunities(scenario);
+  const communities = getCommunities(horizon);
   const dispatchedNow: string[] = [];
 
   for (const c of communities) {

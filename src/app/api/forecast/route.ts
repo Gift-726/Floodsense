@@ -1,35 +1,22 @@
+import fs from "node:fs";
+import path from "node:path";
 import { NextResponse } from "next/server";
-import { isScenario, SCENARIO_INTENSITY, type Scenario } from "@/lib/scenario";
+import type { ModelForecast } from "@/lib/model";
 
-// Stub implementation — Week 1 skeleton only.
-// Data Scientist replaces this with real LSTM output per API_CONTRACT.md.
+// Real model output from the Data Scientist's handoff (docs/MODEL_HANDOFF.md).
+// Daily resolution, 7 fixed horizons, forecasts river discharge at the
+// Lokoja GRDC point — not an hourly flood-event curve. Re-drop a refreshed
+// forecast.json here (same schema) to pick up a new forecast_origin; no
+// code change needed.
+const FORECAST_FILE = path.join(process.cwd(), "src/data/model/forecast.json");
 
-function buildMockForecast(scenario: Scenario) {
-  const intensity = SCENARIO_INTENSITY[scenario];
-  const peak = 40 + intensity * 55; // t72 tops out ~48%, t0 ~95%
-  const hours = Array.from({ length: 72 }, (_, h) => {
-    const progress = h / 71;
-    const probability = Math.round(Math.min(97, 8 + progress * peak));
-    const spread = Math.round(5 + progress * 12);
-    return {
-      hour: h,
-      probability,
-      confidence_low: Math.max(0, probability - spread),
-      confidence_high: Math.min(100, probability + spread),
-    };
-  });
+// Force dynamic: this route reads no request params, so Next.js would
+// otherwise statically optimize it and bake in a build-time snapshot of the
+// file instead of re-reading it on every request.
+export const dynamic = "force-dynamic";
 
-  return {
-    scenario,
-    generated_at: new Date().toISOString(),
-    lagdo_risk_flag: intensity >= 0.5,
-    hours,
-  };
-}
-
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const raw = searchParams.get("scenario");
-  const scenario = isScenario(raw) ? raw : "t72";
-  return NextResponse.json(buildMockForecast(scenario));
+export async function GET() {
+  const raw = fs.readFileSync(FORECAST_FILE, "utf8");
+  const forecast = JSON.parse(raw) as ModelForecast;
+  return NextResponse.json(forecast);
 }

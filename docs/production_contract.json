@@ -1,0 +1,56 @@
+{
+  "system": "FloodSense Kogi",
+  "model": {
+    "name": "FloodSense Implementable Daily Model",
+    "version": "corrected_causal_61_feature_h30",
+    "target": "grdc_discharge",
+    "feature_count": 61,
+    "horizons_days": [
+      1,
+      3,
+      7,
+      14,
+      16,
+      21,
+      30
+    ],
+    "resolution": "daily"
+  },
+  "data_requirements": {
+    "minimum_consecutive_daily_rows": 61,
+    "exogenous_availability_lag_days": 1,
+    "requires_canonical_target_in_history": true
+  },
+  "flood_threshold": {
+    "method": "training_only_p90",
+    "threshold_m3s": 17414.646800000002
+  },
+  "classification": {
+    "calibration": "sigmoid / TimeSeriesSplit(3) / training-only",
+    "threshold_selection": "F2 on full 2022-2023 validation"
+  },
+  "prediction_intervals": {
+    "nominal_central_coverage": 0.9,
+    "guaranteed_coverage": false,
+    "method": "empirical validation residual intervals"
+  },
+  "forbidden_predictors": [
+    "river_discharge",
+    "flood_severity"
+  ],
+  "outputs": {
+    "primary": "forecast.json",
+    "schema": "forecast_schema.json",
+    "tabular": "latest_forecast.csv"
+  },
+  "integration": {
+    "recommended_endpoint": "GET /api/forecast",
+    "gis_consumes_forecast_json": true,
+    "gis_retraining_required": false
+  },
+  "limitations": {
+    "independent_2022_grdc_event_status": "NOT_COMPUTABLE",
+    "daily_not_hourly": true,
+    "spatial_lga_prediction_not_claimed": true
+  }
+}

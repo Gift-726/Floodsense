@@ -1,0 +1,102 @@
+{
+  "system": "FloodSense Kogi",
+  "model": {
+    "name": "FloodSense Implementable Daily Model",
+    "version": "corrected_causal_61_feature_h30",
+    "resolution": "daily",
+    "target": "grdc_discharge",
+    "monitoring_point": "GRDC discharge monitoring point",
+    "feature_count": 61,
+    "training_alert_threshold_m3s": 17414.646800000002,
+    "alert_quantile": 0.9,
+    "exogenous_availability_lag_days": 1,
+    "minimum_consecutive_daily_rows": 61
+  },
+  "forecast_origin": "2025-12-31",
+  "forecasts": [
+    {
+      "lead_days": 1,
+      "target_date": "2026-01-01",
+      "predicted_discharge_m3s": 3425.166748046875,
+      "prediction_lower_m3s": 2773.55615234375,
+      "prediction_upper_m3s": 4076.77734375,
+      "prediction_interval_nominal_coverage": 0.9,
+      "flood_probability": 0.002672850515701797,
+      "operating_probability_threshold": 0.91,
+      "warning_state": "GREEN",
+      "training_alert_threshold_m3s": 17414.646800000002
+    },
+    {
+      "lead_days": 3,
+      "target_date": "2026-01-03",
+      "predicted_discharge_m3s": 3382.78759765625,
+      "prediction_lower_m3s": 2349.0458007812504,
+      "prediction_upper_m3s": 4416.52939453125,
+      "prediction_interval_nominal_coverage": 0.9,
+      "flood_probability": 0.008748388262187308,
+      "operating_probability_threshold": 0.93,
+      "warning_state": "GREEN",
+      "training_alert_threshold_m3s": 17414.646800000002
+    },
+    {
+      "lead_days": 7,
+      "target_date": "2026-01-07",
+      "predicted_discharge_m3s": 3248.241455078125,
+      "prediction_lower_m3s": 1663.3211425781246,
+      "prediction_upper_m3s": 4833.161767578125,
+      "prediction_interval_nominal_coverage": 0.9,
+      "flood_probability": 0.014971470936768762,
+      "operating_probability_threshold": 0.38,
+      "warning_state": "GREEN",
+      "training_alert_threshold_m3s": 17414.646800000002
+    },
+    {
+      "lead_days": 14,
+      "target_date": "2026-01-14",
+      "predicted_discharge_m3s": 3279.358154296875,
+      "prediction_lower_m3s": 1176.8954589843743,
+      "prediction_upper_m3s": 5381.820849609376,
+      "prediction_interval_nominal_coverage": 0.9,
+      "flood_probability": 0.030173635729073944,
+      "operating_probability_threshold": 0.060000000000000005,
+      "warning_state": "YELLOW",
+      "training_alert_threshold_m3s": 17414.646800000002
+    },
+    {
+      "lead_days": 16,
+      "target_date": "2026-01-16",
+      "predicted_discharge_m3s": 3346.39990234375,
+      "prediction_lower_m3s": 1090.1615234375004,
+      "prediction_upper_m3s": 5602.63828125,
+      "prediction_interval_nominal_coverage": 0.9,
+      "flood_probability": 0.03253721558585487,
+      "operating_probability_threshold": 0.12,
+      "warning_state": "GREEN",
+      "training_alert_threshold_m3s": 17414.646800000002
+    },
+    {
+      "lead_days": 21,
+      "target_date": "2026-01-21",
+      "predicted_discharge_m3s": 3192.36181640625,
+      "prediction_lower_m3s": 829.7074218750004,
+      "prediction_upper_m3s": 5555.0162109375,
+      "prediction_interval_nominal_coverage": 0.9,
+      "flood_probability": 0.03974125876433612,
+      "operating_probability_threshold": 0.23,
+      "warning_state": "GREEN",
+      "training_alert_threshold_m3s": 17414.646800000002
+    },
+    {
+      "lead_days": 30,
+      "target_date": "2026-01-30",
+      "predicted_discharge_m3s": 2903.10986328125,
+      "prediction_lower_m3s": 0.0,
+      "prediction_upper_m3s": 5899.18017578125,
+      "prediction_interval_nominal_coverage": 0.9,
+      "flood_probability": 0.03274210765085477,
+      "operating_probability_threshold": 0.08,
+      "warning_state": "GREEN",
+      "training_alert_threshold_m3s": 17414.646800000002
+    }
+  ]
+}
