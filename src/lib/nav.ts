@@ -1,15 +1,8 @@
-import { IconAlert, IconDashboard, IconSensor } from "@/components/icons";
+import { IconAlert, IconCommunity, IconDashboard, IconSensor } from "@/components/icons";
 
 export const NAV_ITEMS = [
-  { label: "Dashboard", icon: IconDashboard, targetId: "dashboard-map" },
-  { label: "Alerts", icon: IconAlert, targetId: "alert-dispatch" },
-  { label: "Sensors", icon: IconSensor, targetId: "sensor-status" },
+  { label: "Dashboard", href: "/", icon: IconDashboard },
+  { label: "Alerts", href: "/alerts", icon: IconAlert },
+  { label: "Sensors", href: "/sensors", icon: IconSensor },
+  { label: "Community", href: "/community", icon: IconCommunity },
 ];
-
-export function jumpTo(targetId: string) {
-  const el = document.getElementById(targetId);
-  if (!el) return;
-  el.scrollIntoView({ behavior: "smooth", block: "start" });
-  el.classList.add("ring-2", "ring-blue-500");
-  window.setTimeout(() => el.classList.remove("ring-2", "ring-blue-500"), 1000);
-}

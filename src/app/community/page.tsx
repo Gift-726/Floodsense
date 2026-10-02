@@ -49,6 +49,14 @@ export default function CommunityPage() {
 
   return (
     <div className="flex min-h-screen flex-col items-center gap-4 bg-slate-900 p-6">
+      <div className="w-full max-w-xs text-center">
+        <h1 className="text-sm font-semibold text-slate-100">Community USSD Simulator</h1>
+        <p className="mt-1 text-xs leading-relaxed text-slate-400">
+          What a resident with no smartphone sees on a basic feature phone — any phone can
+          receive this via USSD, no internet or app needed. Reports sent here appear live on the
+          main dashboard&rsquo;s Alerts page.
+        </p>
+      </div>
       <div className="w-full max-w-xs">
         <label className="mb-1 block text-xs text-slate-400">Simulating alert for</label>
         <select
