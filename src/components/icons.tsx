@@ -72,6 +72,15 @@ export function IconTrendFlat({ className = base }: IconProps) {
   );
 }
 
+export function IconChevronsLeft({ className = base }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className={className}>
+      <path d="m11 17-5-5 5-5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="m18 17-5-5 5-5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export function IconDrop({ className = base }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
